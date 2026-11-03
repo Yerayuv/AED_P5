@@ -200,40 +200,40 @@ Escribe una función que detecte los outliers de un vector $x$ para cada uno de 
 
 ```{r , include = FALSE}
 # Regla 3 sigma
-reglasigma<- function(x,i){
-    umbral_bajo<-mean(x[[i]],na.rm=TRUE)-3*sd(x[[i]],na.rm=TRUE)
-    umbral_alto<-mean(x[[i]],na.rm=TRUE)+3*sd(x[[i]],na.rm=TRUE)
-    !is.na(x[[i]]) &umbral_bajo>x[[i]]|umbral_alto<x[[i]]
+reglasigma<- function(x){
+    umbral_bajo<-mean(x,na.rm=TRUE)-3*sd(x,na.rm=TRUE)
+    umbral_alto<-mean(x,na.rm=TRUE)+3*sd(x,na.rm=TRUE)
+    !is.na(x) &(umbral_bajo>x|umbral_alto<x)
 }
 
 
 # Identificador Hampel
 
-reglahampel<- function(x,i){
-    umbral_bajo<-median(x[[i]],na.rm=TRUE)-3*mad(x[[i]],na.rm=TRUE)
-    umbral_alto<-median(x[[i]],na.rm=TRUE)+3*mad(x[[i]],na.rm=TRUE)
-    !is.na(x[[i]]) &(umbral_bajo>x[[i]]|umbral_alto<x[[i]])
+reglahampel<- function(x){
+    umbral_bajo<-median(x,na.rm=TRUE)-3*mad(x,na.rm=TRUE)
+    umbral_alto<-median(x,na.rm=TRUE)+3*mad(x,na.rm=TRUE)
+    !is.na(x) &(umbral_bajo>x|umbral_alto<x)
 }
 
 # Regla boxplot
 
 
-reglaboxplot<- function(x,i){
-    umbral_bajo<-quantile(x[[i]],na.rm=TRUE)[2]-1.5*IQR(x[[i]],na.rm=TRUE)
-    umbral_alto<-quantile(x[[i]],na.rm=TRUE)[4]+1.5*IQR(x[[i]],na.rm=TRUE)
-    !is.na(x[[i]]) &(umbral_bajo>x[[i]]|umbral_alto<x[[i]])
+reglaboxplot<- function(x){
+    umbral_bajo<-quantile(x,na.rm=TRUE)[2]-1.5*IQR(x,na.rm=TRUE)
+    umbral_alto<-quantile(x,na.rm=TRUE)[4]+1.5*IQR(x,na.rm=TRUE)
+    !is.na(x) &(umbral_bajo>x|umbral_alto<x)
 }
 
 # Percentiles
 
-reglapercentil<- function(x,i){
-    umbral_bajo<-as.numeric(quantile(x[[i]],na.rm=TRUE, probs=c(0.05)))
-    umbral_alto<-as.numeric(quantile(x[[i]],na.rm=TRUE, probs=c(0.95)))
-    !is.na(x[[i]]) &(umbral_bajo>x[[i]]|umbral_alto<x[[i]])
+reglapercentil<- function(x){
+    umbral_bajo<-as.numeric(quantile(x,na.rm=TRUE, probs=c(0.05)))
+    umbral_alto<-as.numeric(quantile(x,na.rm=TRUE, probs=c(0.95)))
+    !is.na(x) &(umbral_bajo>x|umbral_alto<x)
 }
 ```
 
-Hacemos las 4 funciones para que nos devuelvan un vector lógico del mismo tamaño de x para el proximo apartado.
+Hacemos las 4 funciones para que nos devuelvan un vector lógico del mismo tamaño de x para el proximo apartado. Ademas, he tenido que cambiar para que solo tengan un argumento y sea un vector
 
 ## Ejercicio 6: Detección de outliers
 
@@ -241,10 +241,21 @@ Utiliza la función `mutate` y `across` para identificar los outliers en la vari
 
 ```{r Solucion ejercicio 6, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
 
-clean_iris %>% mutate(across())
-
+outliers_petalL <- dirty_iris %>%
+  mutate(across(
+    .cols = Petal.Length,
+    .fns = list(
+      sigma     = reglasigma,
+      hampel    = reglahampel,
+      boxplot   = reglaboxplot,
+      percentil = reglapercentil
+    ),
+    .names = '.{fn}')
+  )
 
 ```
+
+Tras hacer cambios en las funciones, simplemente utilizamos el mutate para hacer las 4 columnas que nos dicen si el valor es outlier para cada metodo (para la columa petal.lenght)
 
 ## Ejercicio 7: Comparativa de los métodos de detección de outliers
 
@@ -254,8 +265,25 @@ En los métodos de detección de outliers analizados, examina los resultados com
 -   Los valores etiquetados como outliers (ordenados de menor a mayor).
 
 ```{r Solucion ejercicio 7, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
+n<-c('n_sigma'=sum(outliers_petalL$.sigma),'n_hampel'=sum(outliers_petalL$.hampel), 'n_boxplot'=sum(outliers_petalL$.boxplot), 'n_percentil'=sum(outliers_petalL$.percentil))
+
+n
+
+outliers_sigma<-dirty_iris[outliers_petalL$.sigma,]
+outliers_sigma
+
+outliers_hampel<-dirty_iris[outliers_petalL$.hampel,]
+outliers_hampel
+
+outliers_boxplot<-dirty_iris[outliers_petalL$.boxplot,]
+outliers_boxplot
+
+outliers_percentil<-dirty_iris[outliers_petalL$.percentil,]
+outliers_percentil
 
 ```
+
+Podemos ver como de laxos son estos métodos. El de sigma es el que más laxo es, marcando solo 2 outliers, que tambien estan contenidos en los outliers marcados por el boxplot y por hampel. Estos dos ultimos marcan 3 outliers, mientras que el ultimo metodo es el mas radical y marca 12 outliers.
 
 ## Ejercicio 8: Representación gráfica
 
