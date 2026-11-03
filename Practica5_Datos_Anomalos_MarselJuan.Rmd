@@ -128,8 +128,18 @@ Con este comando cambiamos las columnas numéricas, y sustituimos solo ls valore
 -   Emplea después la función `na.omit` para quedarnos solo con las filas con datos completos en un nuevo data frame `clean_iris`.
 
 ```{r Solucion ejercicio 3, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
+filas_completas <- complete.cases(dirty_iris_clean)
 
+ncompletas <- sum(filas_completas)
+
+ncompletas
+nrow(dirty_iris)
+
+
+clean_iris <- na.omit(dirty_iris_clean)
 ```
+
+Comprobamos que el total de filas sin Na son unas 92 de 150. Utilizando na.omit podemos quedarnos con esas 92 instancias.
 
 # Detección de outliers univariante
 
@@ -148,8 +158,33 @@ Empleado la función `summarise y across`, calcula la media, la desviación típ
 -   Compara los resultados para los dos conjuntos en la variable `Petal.Length`.
 
 ```{r , include = TRUE}
+library(dplyr)
 
+
+resumen_clean <- clean_iris %>%
+  summarise(across(where(is.numeric), list(
+    mean   = ~mean(.),
+    sd     = ~sd(.),
+    median = ~median(.),
+    madm   = ~mad(.),
+    iqr    = ~IQR(.)
+  ), .names = "{.col}_{.fn}"))
+
+
+resumen_dirty <- dirty_iris %>%
+  summarise(across(where(is.numeric), list(
+    mean   = ~mean(., na.rm = TRUE),
+    sd     = ~sd(., na.rm = TRUE),
+    median = ~median(., na.rm = TRUE),
+    madm   = ~mad(., na.rm = TRUE),
+    iqr    = ~IQR(., na.rm = TRUE)
+  ), .names = "{.col}_{.fn}"))
+
+resumen_clean
+resumen_dirty
 ```
+
+Es complicado tener en cuenta todas las métricas de cada columna, pero comparando los datos limpiados con los de sin limpiar podemos decir que no hay mucho cambio en medianas, madm rangos intercuartilicos, en medias si que hay algo más pero lo que más destaca es que en los datos limpios la desviacion típica sí baja considerablemente, ya que hemos eliminado datos que podían estar bastante lejos de la distribución.
 
 ## Ejercicio 5: Métodos de detección de outliers
 
