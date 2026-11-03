@@ -2,15 +2,15 @@
 title: "Práctica 5. Datos Anómalos"
 subtitle: "Análisis Exploratorio de Datos, Máster en Ciencia de Datos - UV"
 output:
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+    number_sections: no
   html_document:
     echo: yes
     number_sections: no
     theme: lumen
     toc: yes
-  pdf_document:
-    toc: yes
-    toc_depth: 3
-    number_sections: no
 ---
 
 ```{r setup, cache = F, echo = F, message = F, warning = F, tidy = F}
@@ -358,14 +358,33 @@ Vamos a comparar ahora los dos métodos de imputación gráficamente eliminando 
 -   Recalcula las reglas de identificación de outliers (Ejercicio 6) para la nueva variable `Petal.Length2`.
 
 ```{r Solucion ejercicio 10a, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
-
+dirty_iris <- dirty_iris %>%
+  mutate(out_percentil_PL2 = reglapercentil(Petal.Length2))
  
 ```
 
 -   Representa los dos tipos de imputación empleados en un gráfico de dispersión (`Petal.Length1` vs. `Petal.Length2`) eliminando los outliers identificados con la regla `reglapercentil` y poniendo en diferente color los datos originales y los imputados.
 
 ```{r Solucion ejercicio 10b, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
+data_plot <- dirty_iris %>%
+  filter(!out_percentil_PL2) %>%
+  mutate(
+    tipo_dato = ifelse(is.na(Petal.Length), "Imputado", "Original")
+  )
 
+
+ggplot(data_plot, aes(x = Petal.Length1, y = Petal.Length2, color = tipo_dato)) +
+  geom_point(position = position_jitter(width = 0.05, height = 0.05), alpha = 0.7, size = 2) +
+  scale_color_manual(values = c("Imputado" = "red", "Original" = "blue")) +
+  labs(
+    title = "Comparación de Imputación",
+    x = "Petal.Length1",
+    y = "Petal.Length2",
+    color = "Origen del Dato"
+  ) +
+  theme_minimal()
 
 
 ```
+
+Tras recalcular la regla, podemos ver en la gráfica como parece ser que al imputar por grupos probablemnete el error en general sea menor que si imputamos por la media en general.
