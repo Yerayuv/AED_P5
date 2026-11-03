@@ -203,7 +203,7 @@ Escribe una función que detecte los outliers de un vector $x$ para cada uno de 
 reglasigma<- function(x,i){
     umbral_bajo<-mean(x[[i]],na.rm=TRUE)-3*sd(x[[i]],na.rm=TRUE)
     umbral_alto<-mean(x[[i]],na.rm=TRUE)+3*sd(x[[i]],na.rm=TRUE)
-    x[!is.na(x[[i]]) &umbral_bajo>x[[i]]|umbral_alto<x[[i]],]
+    !is.na(x[[i]]) &umbral_bajo>x[[i]]|umbral_alto<x[[i]]
 }
 
 
@@ -212,7 +212,7 @@ reglasigma<- function(x,i){
 reglahampel<- function(x,i){
     umbral_bajo<-median(x[[i]],na.rm=TRUE)-3*mad(x[[i]],na.rm=TRUE)
     umbral_alto<-median(x[[i]],na.rm=TRUE)+3*mad(x[[i]],na.rm=TRUE)
-    x[!is.na(x[[i]]) &(umbral_bajo>x[[i]]|umbral_alto<x[[i]]),]
+    !is.na(x[[i]]) &(umbral_bajo>x[[i]]|umbral_alto<x[[i]])
 }
 
 # Regla boxplot
@@ -221,7 +221,7 @@ reglahampel<- function(x,i){
 reglaboxplot<- function(x,i){
     umbral_bajo<-quantile(x[[i]],na.rm=TRUE)[2]-1.5*IQR(x[[i]],na.rm=TRUE)
     umbral_alto<-quantile(x[[i]],na.rm=TRUE)[4]+1.5*IQR(x[[i]],na.rm=TRUE)
-    x[!is.na(x[[i]]) &(umbral_bajo>x[[i]]|umbral_alto<x[[i]]),]
+    !is.na(x[[i]]) &(umbral_bajo>x[[i]]|umbral_alto<x[[i]])
 }
 
 # Percentiles
@@ -229,9 +229,11 @@ reglaboxplot<- function(x,i){
 reglapercentil<- function(x,i){
     umbral_bajo<-as.numeric(quantile(x[[i]],na.rm=TRUE, probs=c(0.05)))
     umbral_alto<-as.numeric(quantile(x[[i]],na.rm=TRUE, probs=c(0.95)))
-    x[!is.na(x[[i]]) &(umbral_bajo>x[[i]]|umbral_alto<x[[i]]),]
+    !is.na(x[[i]]) &(umbral_bajo>x[[i]]|umbral_alto<x[[i]])
 }
 ```
+
+Hacemos las 4 funciones para que nos devuelvan un vector lógico del mismo tamaño de x para el proximo apartado.
 
 ## Ejercicio 6: Detección de outliers
 
@@ -239,6 +241,7 @@ Utiliza la función `mutate` y `across` para identificar los outliers en la vari
 
 ```{r Solucion ejercicio 6, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
 
+clean_iris %>% mutate(across())
 
 
 ```
