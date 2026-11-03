@@ -292,8 +292,23 @@ Representa gráficamente los datos de `Petal.Length` (distribución de puntos en
 Nota: usa en `geom_point` con la opción `position='jitter'` para mejorar la legibilidad del gráfico.
 
 ```{r Solucion ejercicio 8, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
+library(ggplot2)
+library(tidyr)
 
+
+outliers_long <- outliers_petalL %>%
+  pivot_longer(
+    cols = c(.sigma, .hampel, .boxplot, .percentil),
+    names_to = "regla",
+    values_to = "es_outlier"
+  )
+
+ggplot(outliers_long, aes(x = regla, y = Petal.Length, color = es_outlier)) +
+  geom_point(position = "jitter") +
+  labs(x = "Regla", y = "Petal.Length", color = "Outlier")
 ```
+
+Primero hacemos los ddatos tidy, dividiendo en dos columnas, para asi poder hacer los boxplots con el color cambiado con la variable es_outlier. De esta manera, tenemos los 4 boxplots donde se ve claramente que los puntos que mas se separan se clasificn como outliers, aunque como hemos visto antes algunos metodos son mas permisivos.
 
 # Imputación de datos
 
